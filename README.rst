@@ -82,3 +82,5 @@ The **Analog** 0D viewer uses the telemetrix library. The corresponding sketch s
 on the arduino board. This allows to acquire data from the analog inputs on an Arduino board from python objects on
 the connected computer. See https://mryslab.github.io/telemetrix/
 
+Here are `detailed installation instructions <https://pymodaq.cnrs.fr/en/latest/lab_story_folder/arduino_ubuntu.html#>`_.
+
