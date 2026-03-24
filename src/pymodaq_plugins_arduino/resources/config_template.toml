@@ -1,6 +1,8 @@
 title = "this is the configuration file of the plugin Arduino"
 
 com_port = "COM24"
+ip_address = "172.17.50.236"
+ip_port = 31336
 
 [presets]
 preset_for_colorsynthesizer = "ArduinoLED"
@@ -20,3 +22,8 @@ rows = 2
 pin = 2
 pos_1 = 55
 pos_2 = 80
+
+[FanHeater]
+[FanHeater.pins]
+heater_pin = 9
+heater_fan_pin = 8
