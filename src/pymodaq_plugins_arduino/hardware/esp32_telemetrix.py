@@ -17,6 +17,7 @@ class ArduinoWifi:
     async def _init_board(self, ip_address):
         self._board = telemetrix_aio_esp32.TelemetrixAioEsp32(
             transport_address=ip_address,
-            autostart=True,
+            autostart=False,
             loop=self._loop
         )
+        await self._board.start_aio()
