@@ -31,6 +31,39 @@ class DAQ_Move_FanHeater(DAQ_Move_base):
     def ini_attributes(self):
         self.controller: Optional[ArduinoWifi] = None
 
+    def ini_stage(self, controller=None):
+        self.controller = self.ini_stage_init(
+            old_controller=controller,
+            new_controller=None)
+        if self.is_master:
+            self.controller = ArduinoWifi(
+                ip_address=self.settings['ip_address']
+            )
+            self.set_pins()
+        info = "Heater and Fan ready"
+        initialized = True
+        return info, initialized
+
+    def set_pins(self):
+        for pin in self._axis_names.values():
+            self.controller.set_pin_mode_analog_output(pin)
+
+    def ini_stage(self, controller=None):
+        self.controller = self.ini_stage_init(
+            old_controller=controller,
+            new_controller=None)
+        if self.is_master:
+            self.controller = ArduinoWifi(
+                ip_address=self.settings['ip_address']
+            )
+            self.set_pins()
+        info = "Heater and Fan ready"
+        initialized = True
+        return info, initialized
+
+    def set_pins(self):
+        for pin in self._axis_names.values():
+            self.controller.set_pin_mode_analog_output(pin)
 
 if __name__ == '__main__':
     main(__file__)
