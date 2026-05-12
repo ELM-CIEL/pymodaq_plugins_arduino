@@ -65,6 +65,19 @@ class DAQ_Move_FanHeater(DAQ_Move_base):
         for pin in self._axis_names.values():
             self.controller.set_pin_mode_analog_output(pin)
 
+    def get_actuator_value(self):
+        pos = DataActuator(data=self.controller.get_output_pin_value(self.axis_value))
+        pos = self.get_position_with_scaling(pos)
+        return pos
+
+    def close(self):
+        if self.is_master:
+            self.controller.set_pins_output_to(0)
+            self.controller.shutdown()
+
+    def commit_settings(self, param: Parameter):
+        pass
+
 if __name__ == '__main__':
     main(__file__)
 
