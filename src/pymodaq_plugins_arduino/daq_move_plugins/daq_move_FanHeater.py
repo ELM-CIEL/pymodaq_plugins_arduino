@@ -20,7 +20,7 @@ class DAQ_Move_FanHeater(DAQ_Move_base):
         Ventilateur → GPIO17
     """
 
-    _controller_units = '%'
+    _controller_units = ''
     is_multiaxes = True
     _axis_names = {
         'Heater': config('esp32', 'pins', 'heater_pin'),
@@ -73,14 +73,14 @@ class DAQ_Move_FanHeater(DAQ_Move_base):
         value = self.check_bound(value)
         self.target_value = value
         value = self.set_position_with_scaling(value)
-        pwm_value = int(value.value() * 255 / 100)
+        pwm_value = int(value.value())
         self.controller.analog_write_and_memorize(self.axis_value, pwm_value)
 
     def move_rel(self, value: DataActuator):
         value = self.check_bound(self.current_position + value) - self.current_position
         self.target_value = value + self.current_position
         value = self.set_position_relative_with_scaling(value)
-        pwm_value = int(self.target_value.value() * 255 / 100)
+        pwm_value = int(self.target_value.value())
         self.controller.analog_write_and_memorize(self.axis_value, pwm_value)
 
     def move_home(self):
