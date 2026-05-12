@@ -23,5 +23,17 @@ class DAQ_Move_FanHeater(DAQ_Move_base):
     _epsilon = 0.1
     data_actuator_type = DataActuatorType['DataActuator']
 
+    params = [
+                 {'title': 'IP Address:', 'name': 'ip_address', 'type': 'str',
+                  'value': config('esp32', 'ip_address')}
+             ] + comon_parameters_fun(is_multiaxes, axis_names=_axis_names, epsilon=_epsilon)
+
+    def ini_attributes(self):
+        self.controller: Optional[ArduinoWifi] = None
+
+
 if __name__ == '__main__':
     main(__file__)
+
+
+
