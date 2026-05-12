@@ -5,6 +5,11 @@ from telemetrix_aio_esp32 import telemetrix_aio_esp32
 
 lock = Lock()
 
+PIN_TO_CHANNEL = {
+    17: 0,
+    18: 1,
+}
+
 class ArduinoWifi:
     def __init__(self, ip_address):
         self.pin_values_output = {}
@@ -28,3 +33,6 @@ class ArduinoWifi:
     @staticmethod
     def round_value(value):
         return max(0, min(255, int(value)))
+
+    def set_pin_mode_analog_output(self, pin):
+        self._run(self._board.set_pin_mode_analog_output(pin_number=pin, channel=pin))
