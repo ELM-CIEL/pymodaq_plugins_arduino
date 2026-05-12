@@ -78,6 +78,26 @@ class DAQ_Move_FanHeater(DAQ_Move_base):
     def commit_settings(self, param: Parameter):
         pass
 
+    def move_abs(self, value: DataActuator):
+        value = self.check_bound(value)
+        self.target_value = value
+        value = self.set_position_with_scaling(value)
+        pwm_value = int(value.value() * 255 / 100)
+        self.controller.analog_write_and_memorize(self.axis_value, pwm_value)
+
+    def move_rel(self, value: DataActuator):
+        value = self.check_bound(self.current_position + value) - self.current_position
+        self.target_value = value + self.current_position
+        value = self.set_position_relative_with_scaling(value)
+        pwm_value = int(self.target_value.value() * 255 / 100)
+        self.controller.analog_write_and_memorize(self.axis_value, pwm_value)
+
+    def move_home(self):
+        self.controller.analog_write_and_memorize(self.axis_value, 0)
+
+    def stop_motion(self):
+        pass
+
 if __name__ == '__main__':
     main(__file__)
 
