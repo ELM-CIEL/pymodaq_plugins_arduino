@@ -37,3 +37,7 @@ class ArduinoWifi:
     def set_pin_mode_analog_output(self, pin):
         channel = PIN_TO_CHANNEL.get(pin, 0)
         self._run(self._board.set_pin_mode_analog_output(pin_number=pin, channel=channel))
+
+    def analog_write(self, pin, value):
+        channel = PIN_TO_CHANNEL.get(pin, 0)
+        self._run(self._board.analog_write(channel=channel, value=value))
