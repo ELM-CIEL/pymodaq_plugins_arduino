@@ -35,4 +35,5 @@ class ArduinoWifi:
         return max(0, min(255, int(value)))
 
     def set_pin_mode_analog_output(self, pin):
-        self._run(self._board.set_pin_mode_analog_output(pin_number=pin, channel=pin))
+        channel = PIN_TO_CHANNEL.get(pin, 0)
+        self._run(self._board.set_pin_mode_analog_output(pin_number=pin, channel=channel))
