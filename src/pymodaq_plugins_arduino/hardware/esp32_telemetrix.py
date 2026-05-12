@@ -21,3 +21,10 @@ class ArduinoWifi:
             loop=self._loop
         )
         await self._board.start_aio()
+
+    def _run(self, coro):
+        return asyncio.run_coroutine_threadsafe(coro, self._loop).result(timeout=5)
+
+    @staticmethod
+    def round_value(value):
+        return max(0, min(255, int(value)))
