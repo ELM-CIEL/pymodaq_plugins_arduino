@@ -40,3 +40,23 @@ class ArduinoWifi:
 
     def analog_write(self, pin, value):
         self._run(self._board.analog_write(channel=pin, value=value))
+
+    def analog_write_and_memorize(self, pin, value):
+        lock.acquire()
+        value = self.round_value(value)
+        self.analog_write(pin, value)
+        self.pin_values_output[pin] = value
+        lock.release()
+
+    def set_pins_output_to(self, value: int):
+        lock.acquire()
+        for pin in self.pin_values_output:
+            self.analog_write(pin, int(value))
+        lock.release()
+
+    def get_output_pin_value(self, pin: int):
+        return self.pin_values_output.get(pin, 0)
+
+    def shutdown(self):
+        self._run(self._board.shutdown())
+        self._loop.call_soon_threadsafe(self._loop.stop)
