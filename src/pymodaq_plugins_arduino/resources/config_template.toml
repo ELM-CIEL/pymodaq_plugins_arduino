@@ -4,6 +4,13 @@ com_port = "COM24"
 ip_address = "172.17.50.236"
 ip_port = 31336
 
+[esp32]
+ip_address = "172.17.50.237"  # remplace par l'IP de ton ESP32
+
+[esp32.pins]
+heater_pin = 18
+fan_pin = 17
+
 [presets]
 preset_for_colorsynthesizer = "ArduinoLED"
 
