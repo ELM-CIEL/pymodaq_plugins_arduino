@@ -1,7 +1,7 @@
 from pymodaq_plugins_arduino.hardware.esp32_telemetrix import ArduinoWifi
 
 # Broches SPI Nano ESP32 (By GPIO number)
-CS_PIN = 21   # D10 = GPIO21
+CS_PIN = 21
 CS = [21]
 
 # Registres MAX31865
@@ -11,13 +11,13 @@ MAX31865_CONFIG_MODEAUTO = 0x40
 MAX31865_RTDMSB_REG      = 0x01
 
 # Constantes PT100
-RTD_NOMINAL   = 100.0   # résistance nominale PT100
-RTD_REFERENCE = 430.0   # résistance de référence sur le module
+RTD_NOMINAL   = 100.0
+RTD_REFERENCE = 430.0
 RTD_A = 3.9083e-3
 RTD_B = -5.775e-7
 
 
-class MAX31865(ArduinoWifi):
+class MAX31865:
     """Driver pour le capteur PT100 via MAX31865 SPI.
 
     Broches SPI Nano ESP32 :
@@ -26,4 +26,7 @@ class MAX31865(ArduinoWifi):
         MOSI → D11 = GPIO38
         CS   → D10 = GPIO21
     """
-    pass
+
+    def __init__(self, controller: ArduinoWifi):
+        self._board = controller._board
+        self._run = controller._run
