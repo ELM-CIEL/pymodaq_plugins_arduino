@@ -30,3 +30,13 @@ class MAX31865:
     def __init__(self, controller: ArduinoWifi):
         self._board = controller._board
         self._run = controller._run
+
+    def ini_max31865(self):
+        """Initialise le bus SPI et configure le MAX31865 en mode automatique."""
+        self._run(self._board.set_pin_mode_spi(CS))
+
+        # Configuration : bias ON + mode auto conversion
+        config = MAX31865_CONFIG_BIAS | MAX31865_CONFIG_MODEAUTO
+        self._run(self._board.spi_cs_control(CS_PIN, 0))
+        self._run(self._board.spi_write_blocking([MAX31865_CONFIG_REG | 0x80, config]))
+        self._run(self._board.spi_cs_control(CS_PIN, 1))
