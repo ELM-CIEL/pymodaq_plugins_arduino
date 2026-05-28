@@ -40,3 +40,24 @@ class MAX31865:
         self._run(self._board.spi_cs_control(CS_PIN, 0))
         self._run(self._board.spi_write_blocking([MAX31865_CONFIG_REG | 0x80, config]))
         self._run(self._board.spi_cs_control(CS_PIN, 1))
+
+    def read_rtd_resistance(self) -> float:
+        """Lit les registres RTD du MAX31865 et retourne la résistance en ohms."""
+        data = []
+
+        async def spi_callback(report):
+            data.extend(report[3:])
+
+        self._run(self._board.spi_cs_control(CS_PIN, 0))
+        self._run(self._board.spi_read_blocking(
+            MAX31865_RTDMSB_REG,
+            2,
+            call_back=spi_callback
+        ))
+        self._run(self._board.spi_cs_control(CS_PIN, 1))
+
+        msb = data[0]
+        lsb = data[1]
+        rtd_raw = ((msb << 8) | lsb) >> 1  # retire le bit de fault
+        resistance = (rtd_raw / 32768.0) * RTD_REFERENCE
+        return resistance
