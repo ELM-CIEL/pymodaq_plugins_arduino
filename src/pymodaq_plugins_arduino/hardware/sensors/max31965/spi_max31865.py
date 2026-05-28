@@ -61,3 +61,20 @@ class MAX31865:
         rtd_raw = ((msb << 8) | lsb) >> 1  # retire le bit de fault
         resistance = (rtd_raw / 32768.0) * RTD_REFERENCE
         return resistance
+
+    def resistance_to_temperature(self, resistance: float) -> float:
+        """Convertit la résistance PT100 en température (°C)
+        via l'équation de Callendar-Van Dusen."""
+        z1 = -RTD_A
+        z2 = RTD_A ** 2 - (4 * RTD_B)
+        z3 = (4 * RTD_B) / RTD_NOMINAL
+        z4 = 2 * RTD_B
+
+        temp = z2 + (z3 * resistance)
+        temp = (temp ** 0.5 + z1) / z4
+        return temp
+
+    def get_temperature(self) -> float:
+        """Retourne directement la température en °C."""
+        resistance = self.read_rtd_resistance()
+        return self.resistance_to_temperature(resistance)
