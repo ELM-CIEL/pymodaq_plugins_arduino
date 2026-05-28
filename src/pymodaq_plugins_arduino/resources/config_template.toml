@@ -5,7 +5,7 @@ ip_address = "172.17.50.236"
 ip_port = 31336
 
 [esp32]
-ip_address = "172.17.50.53"  # remplace par l'IP de ton ESP32
+ip_address = "172.17.50.53"
 
 [esp32.pins]
 heater_pin = 18
