@@ -43,22 +43,29 @@ class MAX31865:
 
     def read_rtd_resistance(self) -> float:
         """Lit les registres RTD du MAX31865 et retourne la résistance en ohms."""
+        import asyncio
         data = []
+        event = asyncio.Event()
 
         async def spi_callback(report):
             data.extend(report[3:])
+            event.set()
 
-        self._run(self._board.spi_cs_control(CS_PIN, 0))
-        self._run(self._board.spi_read_blocking(
-            MAX31865_RTDMSB_REG,
-            2,
-            call_back=spi_callback
-        ))
-        self._run(self._board.spi_cs_control(CS_PIN, 1))
+        async def read():
+            await self._board.spi_cs_control(CS_PIN, 0)
+            await self._board.spi_read_blocking(
+                MAX31865_RTDMSB_REG,
+                2,
+                call_back=spi_callback
+            )
+            await self._board.spi_cs_control(CS_PIN, 1)
+            await asyncio.wait_for(event.wait(), timeout=5)
+
+        self._run(read())
 
         msb = data[0]
         lsb = data[1]
-        rtd_raw = ((msb << 8) | lsb) >> 1  # retire le bit de fault
+        rtd_raw = ((msb << 8) | lsb) >> 1
         resistance = (rtd_raw / 32768.0) * RTD_REFERENCE
         return resistance
 
