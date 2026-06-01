@@ -52,3 +52,17 @@ class DAQ_0DViewer_PT100(DAQ_Viewer_base):
         """Termine la communication avec l'ESP32."""
         if self.is_master:
             self.controller.shutdown()
+
+    def grab_data(self, Naverage=1, **kwargs):
+        """Lecture de la température via MAX31865."""
+        temperature = self.max31865.get_temperature()
+
+        self.dte_signal.emit(DataToExport(
+            name='PT100',
+            data=[DataFromPlugins(
+                name='Temperature',
+                data=[np.array([temperature])],
+                dim='Data0D',
+                labels=['Temperature (°C)']
+            )]
+        ))
