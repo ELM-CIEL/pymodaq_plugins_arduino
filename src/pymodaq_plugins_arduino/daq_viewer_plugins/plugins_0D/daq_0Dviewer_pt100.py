@@ -22,3 +22,12 @@ class DAQ_0DViewer_PT100(DAQ_Viewer_base):
         CS   → D10 = GPIO21
     """
     _controller_units = '°C'
+
+    params = comon_parameters + [
+        {'title': 'IP Address:', 'name': 'ip_address', 'type': 'str',
+         'value': config('esp32', 'ip_address')},
+    ]
+
+    def ini_attributes(self):
+        self.controller: Optional[ArduinoWifi] = None
+        self.max31865: Optional[MAX31865] = None
