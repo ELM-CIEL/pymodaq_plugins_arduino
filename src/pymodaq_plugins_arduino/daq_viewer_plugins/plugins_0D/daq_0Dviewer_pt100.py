@@ -31,3 +31,24 @@ class DAQ_0DViewer_PT100(DAQ_Viewer_base):
     def ini_attributes(self):
         self.controller: Optional[ArduinoWifi] = None
         self.max31865: Optional[MAX31865] = None
+
+    def ini_detector(self, controller=None):
+        """Initialisation de la communication WiFi avec l'ESP32."""
+        self.ini_detector_init(slave_controller=controller)
+
+        if self.is_master:
+            self.controller = ArduinoWifi(
+                ip_address=self.settings['ip_address']
+            )
+
+        self.max31865 = MAX31865(controller=self.controller)
+        self.max31865.ini_max31865()
+
+        info = "PT100 ready"
+        initialized = True
+        return info, initialized
+
+    def close(self):
+        """Termine la communication avec l'ESP32."""
+        if self.is_master:
+            self.controller.shutdown()
