@@ -66,3 +66,14 @@ class DAQ_0DViewer_PT100(DAQ_Viewer_base):
                 labels=['Temperature (°C)']
             )]
         ))
+
+        def commit_settings(self, param: Parameter):
+            """Applique les changements de paramètres."""
+            pass
+
+        def stop(self):
+            """Arrête l'acquisition."""
+            pass
+
+    if __name__ == '__main__':
+        main(__file__)
