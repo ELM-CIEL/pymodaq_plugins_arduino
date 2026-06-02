@@ -31,23 +31,21 @@ class MAX31865:
         self._run = controller._run
 
     def ini_max31865(self):
-        """Initialise le bus SPI avec les broches du fichier de config et
-        configure le MAX31865 en mode automatique."""
+        """Initialise le bus SPI avec les broches configurables."""
 
-        # Initialisation SPI avec les broches configurables
-        # Le firmware reçoit : [sck, miso, mosi, nb_cs, cs_pin1, ...]
-        self._run(self._board.set_pin_mode_spi(
-            CS,
-            sck=SCK_PIN,
-            miso=MISO_PIN,
-            mosi=MOSI_PIN
-        ))
+        async def _init():
+            # Envoyer directement SPI_INIT avec [sck, miso, mosi, nb_cs, cs_pin]
+            command = [22, self.sck_pin, self.miso_pin, self.mosi_pin, 1, self.cs_pin]
+            await self._board.transport.write(bytes([len(command)] + command))
+            await asyncio.sleep(0.1)
 
-        # Configuration : bias ON + mode auto conversion
+        self._run(_init())
+
+        # Configuration MAX31865
         config_byte = MAX31865_CONFIG_BIAS | MAX31865_CONFIG_MODEAUTO
-        self._run(self._board.spi_cs_control(CS_PIN, 0))
+        self._run(self._board.spi_cs_control(self.cs_pin, 0))
         self._run(self._board.spi_write_blocking([MAX31865_CONFIG_REG | 0x80, config_byte]))
-        self._run(self._board.spi_cs_control(CS_PIN, 1))
+        self._run(self._board.spi_cs_control(self.cs_pin, 1))
 
     def read_rtd_resistance(self) -> float:
         """Lit les registres RTD du MAX31865 et retourne la résistance en ohms."""
