@@ -1,11 +1,8 @@
+import asyncio
 from pymodaq_plugins_arduino.hardware.esp32_telemetrix import ArduinoWifi
+from pymodaq_plugins_arduino.utils import Config
 
-# Lecture des broches via fichier conf
-CS_PIN  = config('max31865', 'cs_pin')
-SCK_PIN = config('max31865', 'sck_pin')
-MISO_PIN = config('max31865', 'miso_pin')
-MOSI_PIN = config('max31865', 'mosi_pin')
-
+config = Config()
 
 # Registres MAX31865
 MAX31865_CONFIG_REG      = 0x00
@@ -22,34 +19,29 @@ RTD_B = -5.775e-7
 
 class MAX31865:
     """Driver pour le capteur PT100 via MAX31865 SPI.
-
-    Les broches SPI sont lues depuis config_template.toml
+    Les broches SPI sont lues depuis config_template.toml ou passées en paramètres.
     """
 
-    def __init__(self, controller: ArduinoWifi):
+    def __init__(self, controller: ArduinoWifi,
+                 cs_pin=None, sck_pin=None, miso_pin=None, mosi_pin=None):
         self._board = controller._board
         self._run = controller._run
+        self.cs_pin   = cs_pin   or config('max31865', 'cs_pin')
+        self.sck_pin  = sck_pin  or config('max31865', 'sck_pin')
+        self.miso_pin = miso_pin or config('max31865', 'miso_pin')
+        self.mosi_pin = mosi_pin or config('max31865', 'mosi_pin')
 
     def ini_max31865(self):
-        """Initialise le bus SPI avec les broches configurables."""
+        # D'abord init SPI via Telemetrix (pour qu'il soit "activé")
+        self._run(self._board.set_pin_mode_spi([self.cs_pin]))
 
-        async def _init():
-            # Envoyer directement SPI_INIT avec [sck, miso, mosi, nb_cs, cs_pin]
-            command = [22, self.sck_pin, self.miso_pin, self.mosi_pin, 1, self.cs_pin]
-            await self._board.transport.write(bytes([len(command)] + command))
-            await asyncio.sleep(0.1)
-
-        self._run(_init())
-
-        # Configuration MAX31865
+        # Puis config MAX31865
         config_byte = MAX31865_CONFIG_BIAS | MAX31865_CONFIG_MODEAUTO
         self._run(self._board.spi_cs_control(self.cs_pin, 0))
         self._run(self._board.spi_write_blocking([MAX31865_CONFIG_REG | 0x80, config_byte]))
         self._run(self._board.spi_cs_control(self.cs_pin, 1))
 
     def read_rtd_resistance(self) -> float:
-        """Lit les registres RTD du MAX31865 et retourne la résistance en ohms."""
-        import asyncio
         data = []
         event = asyncio.Event()
 
@@ -58,15 +50,14 @@ class MAX31865:
             event.set()
 
         async def read():
-            await self._board.spi_cs_control(CS_PIN, 0)
+            await self._board.spi_cs_control(self.cs_pin, 0)
             await self._board.spi_read_blocking(
                 MAX31865_RTDMSB_REG,
                 2,
                 call_back=spi_callback
             )
-            # On attend la réponse AVANT de relâcher le CS
             await asyncio.wait_for(event.wait(), timeout=5)
-            await self._board.spi_cs_control(CS_PIN, 1)
+            await self._board.spi_cs_control(self.cs_pin, 1)
 
         self._run(read())
 
@@ -77,18 +68,14 @@ class MAX31865:
         return resistance
 
     def resistance_to_temperature(self, resistance: float) -> float:
-        """Convertit la résistance PT100 en température (°C)
-        via l'équation de Callendar-Van Dusen."""
         z1 = -RTD_A
         z2 = RTD_A ** 2 - (4 * RTD_B)
         z3 = (4 * RTD_B) / RTD_NOMINAL
         z4 = 2 * RTD_B
-
         temp = z2 + (z3 * resistance)
         temp = (temp ** 0.5 + z1) / z4
         return temp
 
     def get_temperature(self) -> float:
-        """Retourne directement la température en °C."""
         resistance = self.read_rtd_resistance()
         return self.resistance_to_temperature(resistance)
