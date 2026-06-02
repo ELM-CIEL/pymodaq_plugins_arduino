@@ -1,8 +1,11 @@
 from pymodaq_plugins_arduino.hardware.esp32_telemetrix import ArduinoWifi
 
-# Broches SPI Nano ESP32 (By GPIO number)
-CS_PIN = 21
-CS = [21]
+# Lecture des broches via fichier conf
+CS_PIN  = config('max31865', 'cs_pin')
+SCK_PIN = config('max31865', 'sck_pin')
+MISO_PIN = config('max31865', 'miso_pin')
+MOSI_PIN = config('max31865', 'mosi_pin')
+
 
 # Registres MAX31865
 MAX31865_CONFIG_REG      = 0x00
@@ -20,11 +23,7 @@ RTD_B = -5.775e-7
 class MAX31865:
     """Driver pour le capteur PT100 via MAX31865 SPI.
 
-    Broches SPI Nano ESP32 :
-        SCK  → D13 = GPIO48
-        MISO → D12 = GPIO47
-        MOSI → D11 = GPIO38
-        CS   → D10 = GPIO21
+    Les broches SPI sont lues depuis config_template.toml
     """
 
     def __init__(self, controller: ArduinoWifi):
@@ -32,13 +31,22 @@ class MAX31865:
         self._run = controller._run
 
     def ini_max31865(self):
-        """Initialise le bus SPI et configure le MAX31865 en mode automatique."""
-        self._run(self._board.set_pin_mode_spi(CS))
+        """Initialise le bus SPI avec les broches du fichier de config et
+        configure le MAX31865 en mode automatique."""
+
+        # Initialisation SPI avec les broches configurables
+        # Le firmware reçoit : [sck, miso, mosi, nb_cs, cs_pin1, ...]
+        self._run(self._board.set_pin_mode_spi(
+            CS,
+            sck=SCK_PIN,
+            miso=MISO_PIN,
+            mosi=MOSI_PIN
+        ))
 
         # Configuration : bias ON + mode auto conversion
-        config = MAX31865_CONFIG_BIAS | MAX31865_CONFIG_MODEAUTO
+        config_byte = MAX31865_CONFIG_BIAS | MAX31865_CONFIG_MODEAUTO
         self._run(self._board.spi_cs_control(CS_PIN, 0))
-        self._run(self._board.spi_write_blocking([MAX31865_CONFIG_REG | 0x80, config]))
+        self._run(self._board.spi_write_blocking([MAX31865_CONFIG_REG | 0x80, config_byte]))
         self._run(self._board.spi_cs_control(CS_PIN, 1))
 
     def read_rtd_resistance(self) -> float:
@@ -58,8 +66,9 @@ class MAX31865:
                 2,
                 call_back=spi_callback
             )
-            await self._board.spi_cs_control(CS_PIN, 1)
+            # On attend la réponse AVANT de relâcher le CS
             await asyncio.wait_for(event.wait(), timeout=5)
+            await self._board.spi_cs_control(CS_PIN, 1)
 
         self._run(read())
 
