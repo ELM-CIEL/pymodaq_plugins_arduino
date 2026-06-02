@@ -15,17 +15,30 @@ config = Config()
 class DAQ_0DViewer_PT100(DAQ_Viewer_base):
     """Plugin PyMoDAQ pour la lecture de température via MAX31865 et sonde PT100.
 
-    Broches SPI Nano ESP32 :
-        SCK  → D13 = GPIO48
-        MISO → D12 = GPIO47
-        MOSI → D11 = GPIO38
-        CS   → D10 = GPIO21
+    Les broches SPI sont configurables depuis l'interface PyMoDAQ
+    ou depuis le fichier config_template.toml :
     """
     _controller_units = '°C'
 
     params = comon_parameters + [
-        {'title': 'IP Address:', 'name': 'ip_address', 'type': 'str',
-         'value': config('esp32', 'ip_address')},
+        {'title': 'Connexion', 'name': 'connection', 'type': 'group', 'children': [
+            {'title': 'IP Address:', 'name': 'ip_address', 'type': 'str',
+             'value': config('esp32', 'ip_address')},
+        ]},
+        {'title': 'SPI Pins (GPIO)', 'name': 'spi_pins', 'type': 'group', 'children': [
+            {'title': 'SCK pin:', 'name': 'sck_pin', 'type': 'int',
+             'value': config('max31865', 'sck_pin'),
+             'tip': 'Nano ESP32 legacy : D13 = GPIO48'},
+            {'title': 'MISO pin:', 'name': 'miso_pin', 'type': 'int',
+             'value': config('max31865', 'miso_pin'),
+             'tip': 'Nano ESP32 legacy : D12 = GPIO47'},
+            {'title': 'MOSI pin:', 'name': 'mosi_pin', 'type': 'int',
+             'value': config('max31865', 'mosi_pin'),
+             'tip': 'Nano ESP32 legacy : D11 = GPIO38'},
+            {'title': 'CS pin:', 'name': 'cs_pin', 'type': 'int',
+             'value': config('max31865', 'cs_pin'),
+             'tip': 'Nano ESP32 legacy : D10 = GPIO21'},
+        ]},
     ]
 
     def ini_attributes(self):
@@ -36,9 +49,15 @@ class DAQ_0DViewer_PT100(DAQ_Viewer_base):
         self.ini_detector_init(slave_controller=controller)
         if self.is_master:
             self.controller = ArduinoWifi(
-                ip_address=self.settings['ip_address']
+                ip_address=self.settings['connection', 'ip_address']
             )
-        self.max31865 = MAX31865(controller=self.controller)
+        self.max31865 = MAX31865(
+            controller=self.controller,
+            sck_pin=self.settings['spi_pins', 'sck_pin'],
+            miso_pin=self.settings['spi_pins', 'miso_pin'],
+            mosi_pin=self.settings['spi_pins', 'mosi_pin'],
+            cs_pin=self.settings['spi_pins', 'cs_pin'],
+        )
         self.max31865.ini_max31865()
         info = "PT100 ready"
         initialized = True
