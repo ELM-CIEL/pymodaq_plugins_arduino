@@ -113,3 +113,12 @@ venv.bak/
 
 *yacctab.py
 *lextab.py
+
+# Environments Pixi 
+pixi.lock
+pixi.toml
+setup_dev.py
+
+# VSCode Settings
+.vscode/launch.json
+.vscode/settings.json
