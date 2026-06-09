@@ -5,7 +5,7 @@ ip_address = "172.17.50.236"
 ip_port = 31336
 
 [esp32]
-ip_address = "172.17.50.53"  # remplace par l'IP de ton ESP32
+ip_address = "172.17.50.53"
 
 [esp32.pins]
 heater_pin = 18
@@ -34,3 +34,12 @@ pos_2 = 80
 [FanHeater.pins]
 heater_pin = 9
 heater_fan_pin = 8
+
+[max31865]
+#Broches SPI pour le capteur MAX31865 / PT100
+#Vameirs par défaut : Nano ESP32 en mode GPIO Legacy
+sck_pin  = 48
+miso_pin = 47
+mosi_pin = 38
+cs_pin   = 21
+
