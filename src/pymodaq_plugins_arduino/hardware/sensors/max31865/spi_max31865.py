@@ -5,6 +5,8 @@ from pymodaq_plugins_arduino.utils import Config
 
 config = Config()
 
+SPI_INIT = 22
+
 # ── MAX31865 register map ────────────────────────────────────────────────────
 MAX31865_CONFIG_REG      = 0x00   # Configuration register (write address = reg | 0x80)
 MAX31865_CONFIG_BIAS     = 0x80   # Bias voltage ON
@@ -47,16 +49,34 @@ class MAX31865:
         """Initialise the SPI bus and put the MAX31865 in auto-conversion mode.
 
         Sequence:
-        1. Register the CS pin with Telemetrix (``set_pin_mode_spi``).
-        2. Write the configuration byte that enables the bias voltage and
-           selects continuous conversion.
+        1. Send SPI_INIT manually with all four pin numbers.
+           (set_pin_mode_spi([cs]) only forwards the CS pin; the firmware's
+           init_spi() also needs SCK, MISO and MOSI.)
+        2. Force the internal Telemetrix flags that gate spi_cs_control().
+           (Bypassing set_pin_mode_spi leaves spi_enabled=False.)
+        3. Write the configuration byte: bias voltage ON + auto conversion.
         """
-        self._run(self._board.set_pin_mode_spi([self.cs_pin]))
+        self._run(self._manual_spi_init())
+        # Telemetrix gates spi_cs_control() behind these two flags; set them
+        # manually because we bypassed the normal set_pin_mode_spi path.
+        self._board.spi_enabled = True
+        if self.cs_pin not in self._board.cs_pins_enabled:
+            self._board.cs_pins_enabled.append(self.cs_pin)
 
         config_byte = MAX31865_CONFIG_BIAS | MAX31865_CONFIG_MODEAUTO
         self._run(self._board.spi_cs_control(self.cs_pin, 0))
         self._run(self._board.spi_write_blocking([MAX31865_CONFIG_REG | 0x80, config_byte]))
         self._run(self._board.spi_cs_control(self.cs_pin, 1))
+
+    async def _manual_spi_init(self):
+        """Send SPI_INIT (cmd 22) with all four pin numbers explicitly.
+
+        Payload expected by firmware init_spi():
+            [sck_pin, miso_pin, mosi_pin, num_cs=1, cs_pin]
+        """
+        await self._board._send_command([SPI_INIT,
+                                         self.sck_pin, self.miso_pin, self.mosi_pin,
+                                         1, self.cs_pin])
 
     def read_rtd_resistance(self) -> float:
         """Read the raw RTD register and return the equivalent resistance in Ω.
@@ -64,15 +84,22 @@ class MAX31865:
         The MAX31865 stores the 15-bit ADC result in registers 0x01 (MSB) and
         0x02 (LSB).  Bit 0 of the LSB is the fault flag and is discarded by
         shifting right one position before computing the resistance.
-        """
-        data  = []
-        event = asyncio.Event()
 
-        async def spi_callback(report):
-            data.extend(report[3:])
-            event.set()
+        Note: requires the firmware fix — read_blocking_spi must NOT OR the
+        register address with 0x80 (MAX31865 convention: bit7=0 = read).
+        """
+        data = []
 
         async def read():
+            # asyncio.Event must be created inside the running event-loop thread
+            event = asyncio.Event()
+
+            async def spi_callback(report):
+                # report layout from firmware: [len, SPI_REPORT, reg, num_bytes, byte0, byte1, ...]
+                # report[3:] = [byte0, byte1, ...]
+                data.extend(report[3:])
+                event.set()
+
             await self._board.spi_cs_control(self.cs_pin, 0)
             await self._board.spi_read_blocking(
                 MAX31865_RTDMSB_REG,
