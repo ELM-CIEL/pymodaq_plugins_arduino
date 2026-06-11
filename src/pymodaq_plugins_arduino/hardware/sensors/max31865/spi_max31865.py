@@ -15,7 +15,9 @@ MAX31865_RTDMSB_REG      = 0x01   # RTD resistance data MSB (read-only)
 
 # ── PT100 Callendar-Van Dusen coefficients ───────────────────────────────────
 RTD_NOMINAL   = 100.0    # PT100 nominal resistance at 0 °C (Ω)
-RTD_REFERENCE = 430.0    # Reference resistor mounted on the MAX31865 board (Ω)
+RTD_REFERENCE = 430.0    # Default reference resistor (Ω) — Adafruit boards use
+                         # 430 Ω, but clones ship with 350/390/400 Ω: check the
+                         # SMD resistor marked Rref next to the chip.
 RTD_A =  3.9083e-3       # CVD coefficient A
 RTD_B = -5.775e-7        # CVD coefficient B
 
@@ -35,7 +37,8 @@ class MAX31865:
 
     def __init__(self, controller: ArduinoWifi,
                  cs_pin: int = None, sck_pin: int = None,
-                 miso_pin: int = None, mosi_pin: int = None):
+                 miso_pin: int = None, mosi_pin: int = None,
+                 ref_resistor: float = None):
         # Borrow the board handle and the synchronous _run helper from the controller
         self._board = controller._board
         self._run   = controller._run
@@ -44,6 +47,7 @@ class MAX31865:
         self.sck_pin  = sck_pin  or config('max31865', 'sck_pin')
         self.miso_pin = miso_pin or config('max31865', 'miso_pin')
         self.mosi_pin = mosi_pin or config('max31865', 'mosi_pin')
+        self.ref_resistor = ref_resistor or RTD_REFERENCE
 
     def ini_max31865(self):
         """Initialise the SPI bus and put the MAX31865 in auto-conversion mode.
@@ -121,7 +125,7 @@ class MAX31865:
         self._run(read())
 
         rtd_raw    = ((data[0] << 8) | data[1]) >> 1   # discard fault bit (LSB)
-        resistance = (rtd_raw / 32768.0) * RTD_REFERENCE
+        resistance = (rtd_raw / 32768.0) * self.ref_resistor
         return resistance
 
     def resistance_to_temperature(self, resistance: float) -> float:
