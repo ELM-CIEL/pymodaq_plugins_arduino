@@ -9,7 +9,9 @@
       "PowerShell($paths = @\\(\"$env:USERPROFILE\\\\miniconda3\\\\envs\", \"$env:USERPROFILE\\\\anaconda3\\\\envs\", \"$env:USERPROFILE\\\\.conda\\\\envs\", \"$env:LOCALAPPDATA\\\\miniconda3\\\\envs\", \"C:\\\\ProgramData\\\\miniconda3\\\\envs\", \"C:\\\\ProgramData\\\\anaconda3\\\\envs\"\\); foreach \\($p in $paths\\) { if \\(Test-Path $p\\) { Get-ChildItem $p -Directory | Select-Object -ExpandProperty FullName } })",
       "PowerShell($cli = Get-Command arduino-cli -ErrorAction SilentlyContinue; if \\($cli\\) { $cli.Source; arduino-cli version } else { \"arduino-cli absent\" }; $ide = Get-ChildItem \"$env:LOCALAPPDATA\\\\Programs\\\\Arduino IDE\",\"C:\\\\Program Files\\\\Arduino IDE\" -ErrorAction SilentlyContinue -Filter \"Arduino IDE.exe\" -Recurse | Select-Object -First 1; if \\($ide\\) { $ide.FullName } else { \"Arduino IDE introuvable aux emplacements standards\" })",
       "WebFetch(domain:htmlpreview.github.io)",
-      "WebFetch(domain:raw.githubusercontent.com)"
+      "WebFetch(domain:raw.githubusercontent.com)",
+      "WebFetch(domain:docs.arduino.cc)",
+      "PowerShell($f = Get-ChildItem \"$env:LOCALAPPDATA\\\\Arduino15\\\\packages\" -Recurse -Filter \"pins_arduino.h\" -ErrorAction SilentlyContinue | Where-Object { $_.FullName -match \"nora\" } | Select-Object -First 1; $f.FullName)"
     ]
   }
 }

@@ -6,6 +6,8 @@ from pymodaq_plugins_arduino.utils import Config
 
 config = Config()
 
+I2C_BEGIN = 9
+
 # ADS1115/ADS1015 register addresses
 ADS_REG_CONVERSION = 0x00
 ADS_REG_CONFIG     = 0x01
@@ -80,12 +82,23 @@ class ADS1115:
         self.is_ads1015  = is_ads1015
 
     def ini_ads1115(self):
-        """Initialise the I2C bus on the ESP32."""
-        self._run(self._board.set_pin_mode_i2c(
-            i2c_port=0,
-            sda_gpio=self.sda_pin,
-            scl_gpio=self.scl_pin,
-        ))
+        """Initialise the I2C bus on the ESP32.
+
+        set_pin_mode_i2c() in telemetrix_aio_esp32 2.0.0 takes no pin
+        arguments, so the I2C_BEGIN command is sent manually with the
+        SDA/SCL pins as payload.  Firmware >= 3.1.2 applies them through
+        Wire.begin(sda, scl); older firmwares ignore the payload and use
+        the board defaults (A4 = GPIO11 / A5 = GPIO12 on the Nano ESP32,
+        which match the config defaults).
+        """
+        async def _begin():
+            await self._board._send_command(
+                [I2C_BEGIN, self.sda_pin, self.scl_pin])
+
+        self._run(_begin())
+        # The lib gates i2c_read/i2c_write behind this flag; set it manually
+        # because we bypassed set_pin_mode_i2c().
+        self._board.i2c_active = True
 
     def read_channel(self, channel: int) -> float:
         """Trigger a single-ended conversion on *channel* and return the voltage in V.

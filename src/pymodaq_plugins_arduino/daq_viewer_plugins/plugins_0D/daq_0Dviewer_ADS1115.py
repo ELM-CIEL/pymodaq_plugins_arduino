@@ -46,10 +46,10 @@ class DAQ_0DViewer_ADS1115(DAQ_Viewer_base):
              'tip': '0x48=ADDR→GND  0x49=ADDR→VDD  0x4A=ADDR→SDA  0x4B=ADDR→SCL'},
             {'title': 'SDA pin:', 'name': 'sda_pin', 'type': 'int',
              'value': config('ads1115', 'sda_pin'),
-             'tip': 'Nano ESP32 : A4 = GPIO18'},
+             'tip': 'Nano ESP32 : A4 = GPIO11 (SDA par défaut)'},
             {'title': 'SCL pin:', 'name': 'scl_pin', 'type': 'int',
              'value': config('ads1115', 'scl_pin'),
-             'tip': 'Nano ESP32 : A5 = GPIO19'},
+             'tip': 'Nano ESP32 : A5 = GPIO12 (SCL par défaut)'},
         ]},
         {'title': 'ADC Settings', 'name': 'adc', 'type': 'group', 'children': [
             {'title': 'Chip type:', 'name': 'chip_type', 'type': 'list',
@@ -124,7 +124,7 @@ class DAQ_0DViewer_ADS1115(DAQ_Viewer_base):
 
     def close(self):
         """Terminate the communication protocol."""
-        if self.is_master:
+        if self.is_master and self.controller is not None:
             self.controller.shutdown()
 
     def grab_data(self, Naverage=1, **kwargs):

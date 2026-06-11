@@ -109,7 +109,7 @@ class DAQ_0DViewer_Temperature_MAX31865(DAQ_Viewer_base):
 
     def close(self):
         """Terminate the communication protocol"""
-        if self.is_master:
+        if self.is_master and self.controller is not None:
             self.controller.shutdown()
 
     def grab_data(self, Naverage=1, **kwargs):
