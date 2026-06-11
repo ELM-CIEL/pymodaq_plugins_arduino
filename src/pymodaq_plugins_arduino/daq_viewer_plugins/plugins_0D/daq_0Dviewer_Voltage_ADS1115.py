@@ -12,7 +12,7 @@ from pymodaq_plugins_arduino.utils import Config
 config = Config()
 
 
-class DAQ_0DViewer_ADS1115(DAQ_Viewer_base):
+class DAQ_0DViewer_Voltage_ADS1115(DAQ_Viewer_base):
     """Instrument plugin class for a 0D viewer.
 
     This object inherits all functionalities to communicate with PyMoDAQ's DAQ_Viewer module through
@@ -118,7 +118,7 @@ class DAQ_0DViewer_ADS1115(DAQ_Viewer_base):
         )
         self.ads.ini_ads1115()
 
-        info = "ADS1115 ready"
+        info = "Voltage ADS1115 ready"
         initialized = True
         return info, initialized
 
@@ -146,7 +146,7 @@ class DAQ_0DViewer_ADS1115(DAQ_Viewer_base):
             labels.append(f'AIN{ch} (V)')
 
         self.dte_signal.emit(DataToExport(
-            name='ADS1115',
+            name='Voltage ADS1115',
             data=[DataFromPlugins(
                 name='Voltage',
                 data=voltages,
