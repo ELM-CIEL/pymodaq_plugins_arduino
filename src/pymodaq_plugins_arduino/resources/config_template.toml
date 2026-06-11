@@ -47,7 +47,7 @@ cs_pin   = 21
 #Broches I2C et adresse pour le capteur GY-ADS1115 / ADS1015
 #Adresse I2C : 0x48 (ADDR→GND), 0x49 (ADDR→VDD), 0x4A (ADDR→SDA), 0x4B (ADDR→SCL)
 i2c_address = 0x48
-sda_pin = 18   # A4 sur Nano ESP32
-scl_pin = 19   # A5 sur Nano ESP32
+sda_pin = 11   # A4 sur Nano ESP32 (GPIO11, SDA par defaut)
+scl_pin = 12   # A5 sur Nano ESP32 (GPIO12, SCL par defaut)
 gain = "1"
 
