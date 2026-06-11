@@ -1,7 +1,7 @@
 title = "this is the configuration file of the plugin Arduino"
 
 com_port = "COM24"
-ip_address = "172.17.50.236"
+ip_address = "172.17.50.53"
 ip_port = 31336
 
 [esp32]

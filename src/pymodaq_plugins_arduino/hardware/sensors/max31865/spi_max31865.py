@@ -54,7 +54,12 @@ class MAX31865:
            init_spi() also needs SCK, MISO and MOSI.)
         2. Force the internal Telemetrix flags that gate spi_cs_control().
            (Bypassing set_pin_mode_spi leaves spi_enabled=False.)
-        3. Write the configuration byte: bias voltage ON + auto conversion.
+        3. Set the SPI format: the MAX31865 requires SPI mode 1 or 3
+           (CPHA=1); the firmware default is mode 0, which the chip ignores.
+        4. Write the configuration byte: bias voltage ON + auto conversion.
+
+        Requires firmware >= 3.1.1 (read address sent as-is + SPI format
+        actually applied through SPI.beginTransaction()).
         """
         self._run(self._manual_spi_init())
         # Telemetrix gates spi_cs_control() behind these two flags; set them
@@ -62,6 +67,10 @@ class MAX31865:
         self._board.spi_enabled = True
         if self.cs_pin not in self._board.cs_pins_enabled:
             self._board.cs_pins_enabled.append(self.cs_pin)
+
+        # 1 MHz (divisor 16 of the Arduino 16 MHz convention), MSB first,
+        # SPI mode 1 (AVR constant 0x04) as required by the MAX31865.
+        self._run(self._board.spi_set_format(16, 1, 0x04))
 
         config_byte = MAX31865_CONFIG_BIAS | MAX31865_CONFIG_MODEAUTO
         self._run(self._board.spi_cs_control(self.cs_pin, 0))
