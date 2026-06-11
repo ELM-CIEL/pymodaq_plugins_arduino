@@ -12,7 +12,7 @@ from pymodaq_plugins_arduino.utils import Config
 config = Config()
 
 
-class DAQ_0DViewer_PT100(DAQ_Viewer_base):
+class DAQ_0DViewer_Temperature_MAX31865(DAQ_Viewer_base):
     """Instrument plugin class for a 0D viewer.
 
     This object inherits all functionalities to communicate with PyMoDAQ's DAQ_Viewer module through
@@ -103,7 +103,7 @@ class DAQ_0DViewer_PT100(DAQ_Viewer_base):
         )
         self.max31865.ini_max31865()
 
-        info = "PT100 ready"
+        info = "Temperature MAX31865 ready"
         initialized = True
         return info, initialized
 
@@ -125,7 +125,7 @@ class DAQ_0DViewer_PT100(DAQ_Viewer_base):
         """
         temperature = self.max31865.get_temperature()
         self.dte_signal.emit(DataToExport(
-            name='PT100',
+            name='Temperature MAX31865',
             data=[DataFromPlugins(
                 name='Temperature',
                 data=[np.array([temperature])],
