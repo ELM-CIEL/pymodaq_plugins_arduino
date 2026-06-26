@@ -3,8 +3,6 @@ import numbers
 import threading
 from threading import Lock
 
-from telemetrix_aio_esp32 import telemetrix_aio_esp32
-
 lock = Lock()
 
 # Maps GPIO pin numbers to ESP32 LEDC hardware channels.
@@ -44,6 +42,12 @@ class ArduinoWifi:
         future.result(timeout=10)
 
     async def _init_board(self, ip_address: str):
+        # Lazy import: telemetrix_aio_esp32 (and its optional bleak dependency) is
+        # only needed when actually connecting to the board. Importing it at module
+        # level would make the whole plugin fail to load (and break plugin discovery
+        # and the test suite) on environments where the dependency is missing or
+        # incompatible.
+        from telemetrix_aio_esp32 import telemetrix_aio_esp32
         self._board = telemetrix_aio_esp32.TelemetrixAioEsp32(
             transport_address=ip_address,
             autostart=False,
