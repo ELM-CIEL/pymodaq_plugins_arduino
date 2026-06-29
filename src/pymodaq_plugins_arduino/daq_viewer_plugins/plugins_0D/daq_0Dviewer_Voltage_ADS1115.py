@@ -100,12 +100,13 @@ class DAQ_0DViewer_Voltage_ADS1115(DAQ_Viewer_base):
         initialized: bool
             False if initialization failed otherwise True.
         """
-        self.ini_detector_init(slave_controller=controller)
 
         if self.is_master:
             self.controller = ArduinoWifi(
                 ip_address=self.settings['connection', 'ip_address']
             )
+        else:
+            self.controller = controller
 
         self.ads = ADS1115(
             controller=self.controller,

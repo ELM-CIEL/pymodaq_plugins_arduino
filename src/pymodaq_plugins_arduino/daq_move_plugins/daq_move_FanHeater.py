@@ -21,8 +21,8 @@ class DAQ_Move_FanHeater(DAQ_Move_base):
     Both actuators are driven by a XY-MOS PWM board connected to an ESP32 over WiFi using the
     Telemetrix AIO protocol.  The PWM duty cycle ranges from 0 to 255 (8-bit resolution).
 
-        Heater → GPIO18
-        Fan    → GPIO17
+        Heater
+        Fan    
 
     Attributes:
     -----------
@@ -55,7 +55,7 @@ class DAQ_Move_FanHeater(DAQ_Move_base):
         -------
         float: The position obtained after scaling conversion.
         """
-        pos = DataActuator(data=self.controller.get_output_pin_value(self.axis_value))
+        pos = DataActuator(data=self.controller.get_output_pin_value(self.axis_value), units=self.axis_unit)
         pos = self.get_position_with_scaling(pos)
         return pos
 
@@ -90,16 +90,14 @@ class DAQ_Move_FanHeater(DAQ_Move_base):
         initialized: bool
             False if initialization failed otherwise True
         """
-        self.controller = self.ini_stage_init(
-            old_controller=controller,
-            new_controller=None,
-        )
 
         if self.is_master:
             self.controller = ArduinoWifi(
                 ip_address=self.settings['ip_address']
             )
             self.set_pins()
+        else:
+            self.controller = controller
 
         info = "Heater and Fan ready"
         initialized = True
@@ -122,7 +120,7 @@ class DAQ_Move_FanHeater(DAQ_Move_base):
         self.target_value = value
         value = self.set_position_with_scaling(value)    # apply scaling if the user specified one
 
-        self.controller.analog_write_and_memorize(self.axis_value, int(value.value()))
+        self.controller.analog_write_and_memorize(self.axis_value, int(value.value(self.axis_unit)))
 
     def move_rel(self, value: DataActuator):
         """Move the actuator to the relative target actuator value defined by value
@@ -136,8 +134,8 @@ class DAQ_Move_FanHeater(DAQ_Move_base):
         value = self.set_position_relative_with_scaling(value)
 
         # PWM value is set in duty-cycle counts (0–255)
-        self.controller.analog_write_and_memorize(self.axis_value, int(self.target_value.value()))
-
+        self.controller.analog_write_and_memorize(self.axis_value, int(self.target_value.value(self.axis_unit)))
+        
     def move_home(self):
         """Call the reference method of the controller"""
         self.controller.analog_write_and_memorize(self.axis_value, 0)

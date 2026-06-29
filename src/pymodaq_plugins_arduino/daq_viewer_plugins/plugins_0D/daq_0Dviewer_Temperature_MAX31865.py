@@ -87,12 +87,13 @@ class DAQ_0DViewer_Temperature_MAX31865(DAQ_Viewer_base):
         initialized: bool
             False if initialization failed otherwise True
         """
-        self.ini_detector_init(slave_controller=controller)
 
         if self.is_master:
             self.controller = ArduinoWifi(
                 ip_address=self.settings['connection', 'ip_address']
             )
+        else:
+            self.controller = controller
 
         self.max31865 = MAX31865(
             controller=self.controller,
