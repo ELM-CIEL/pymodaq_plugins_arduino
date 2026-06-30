@@ -31,7 +31,7 @@ class DAQ_Move_FanHeater(DAQ_Move_base):
         wrapper around the hardware library.
     """
 
-    _controller_units = ''
+    _controller_units = '' # raw PWM level (0-255) unit depends on wired device
     is_multiaxes = True
     _axis_names = {
         'Heater': config('esp32', 'pins', 'heater_pin'),
