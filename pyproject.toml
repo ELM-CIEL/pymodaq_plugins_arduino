@@ -14,10 +14,7 @@ description = 'Set of instrument plugins implemented using an Arduino Board'
 dependencies = [
     "pymodaq>=5.0.0",
     'telemetrix',
-    'telemetrix-esp32',
-    # telemetrix-esp32 imports `from bleak import discover`, which was removed in
-    # bleak 1.0. Pin bleak below 1.0 so telemetrix-esp32 stays importable.
-    'bleak<1.0',
+    'telemetrix-esp32>=2.1.1',
     'pyvisa',
     'pyvisa-py',
 
